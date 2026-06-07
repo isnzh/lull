@@ -42,7 +42,7 @@ button.drink{border-color:rgba(180,160,255,0.6);color:rgba(220,210,255,0.9);font
   <h1>"味道的雨"</h1>
   <div class="divider"></div>
 
-  <canvas id="gameCanvas" width="380" height="300"></canvas>
+  <canvas id="gameCanvas" width="380" height="500"></canvas>
 
   <div class="controls">
     <button class="primary" id="startBtn" onclick="startGame()">▶ 开始下雨</button>
@@ -173,7 +173,7 @@ function spawnDrop(){
   if(totalDrops>=maxDrops)return;
   totalDrops++;
   const f=FLAVORS[Math.floor(Math.random()*FLAVORS.length)];
-  drops.push({x:20+Math.random()*(W-40),y:-14,vy:200+Math.random()*140,r:7+Math.random()*3,flavor:f,trail:[],done:false});
+  drops.push({x:20+Math.random()*(W-40),y:-14,vy:300+Math.random()*210,r:7+Math.random()*3,flavor:f,trail:[],done:false});
 }
 
 function drawFrame(){
