@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Lull — 味道雨滴demo</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=Crimson+Pro:wght@300;400&display=swap" rel="stylesheet"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:#080810;color:#e8e4dc;font-family:'Crimson Pro',serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem 1rem;}
@@ -18,88 +18,147 @@ button{background:transparent;border:0.5px solid rgba(140,120,200,0.3);border-ra
 button:hover:not(:disabled){border-color:rgba(140,120,200,0.6);color:rgba(180,160,255,0.9);}
 button:disabled{opacity:0.2;cursor:not-allowed;}
 button.primary{border-color:rgba(180,160,255,0.5);color:rgba(200,190,255,0.8);}
+button.drink{border-color:rgba(180,160,255,0.6);color:rgba(220,210,255,0.9);font-size:15px;padding:10px 28px;font-family:'Cormorant Garamond',serif;font-style:italic;}
 .hint{font-size:11px;font-style:italic;font-family:'Cormorant Garamond',serif;color:rgba(140,120,200,0.3);text-align:center;}
 
-/* 喝一口按钮 */
-#drinkBtn{display:none;font-size:14px;padding:10px 28px;border-color:rgba(180,160,255,0.4);color:rgba(200,190,255,0.8);animation:pulse 2s ease-in-out infinite;}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(180,160,255,0);}50%{box-shadow:0 0 12px 2px rgba(180,160,255,0.15);}}
+/* 喝一口页面 */
+#drinkPage{display:none;width:100%;flex-direction:column;align-items:center;gap:1.2rem;animation:fadeIn 0.8s ease forwards;}
 
-/* 结果页 */
-#resultPage{display:none;width:100%;flex-direction:column;align-items:center;gap:1.4rem;animation:fadeIn 1s ease forwards;}
-@keyframes fadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
-.res-label{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(140,120,200,0.4);}
-.res-cup{font-size:64px;line-height:1;text-align:center;animation:floatCup 3s ease-in-out infinite;}
+/* 结果页面 */
+#resultPage{display:none;width:100%;flex-direction:column;align-items:center;gap:1.2rem;animation:fadeIn 0.8s ease forwards;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.liquid-cup{font-size:72px;line-height:1;text-align:center;animation:floatCup 3s ease-in-out infinite;}
 @keyframes floatCup{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
-.res-name{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:rgba(220,215,255,0.9);text-align:center;line-height:1.3;}
-.res-desc{font-family:'Cormorant Garamond',serif;font-size:15px;font-style:italic;color:rgba(200,190,255,0.6);text-align:center;line-height:1.9;max-width:300px;}
-.color-swatch{width:56px;height:56px;border-radius:50%;border:0.5px solid rgba(255,255,255,0.1);margin:0 auto;}
+.result-got{font-family:'Cormorant Garamond',serif;font-size:13px;font-style:italic;color:rgba(140,120,200,0.5);letter-spacing:0.15em;text-transform:uppercase;}
+.result-name{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:rgba(220,215,255,0.9);text-align:center;line-height:1.4;}
+.result-desc{font-family:'Cormorant Garamond',serif;font-size:15px;font-style:italic;color:rgba(200,190,255,0.6);text-align:center;line-height:1.9;max-width:300px;}
 .flavor-tags{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
-.ftag{border-radius:999px;padding:4px 12px;font-size:12px;font-family:'Crimson Pro',serif;}
+.flavor-tag{border-radius:999px;padding:4px 12px;font-size:12px;font-family:'Crimson Pro',serif;}
+.color-dot{width:56px;height:56px;border-radius:50%;border:0.5px solid rgba(255,255,255,0.1);margin:0 auto;}
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>"味道的雨"</h1>
   <div class="divider"></div>
+
   <canvas id="gameCanvas" width="380" height="300"></canvas>
+
   <div class="controls">
     <button class="primary" id="startBtn" onclick="startGame()">▶ 开始下雨</button>
-    <button id="drinkBtn" onclick="showResult()">喝一口尝尝</button>
-    <button id="resetBtn" onclick="resetGame()" style="display:none;">重新接雨</button>
   </div>
   <div class="hint" id="gameHint">按开始，用鼠标或手指左右移动来接雨滴</div>
 
+  <!-- 喝一口页面 -->
+  <div id="drinkPage">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:16px;font-style:italic;color:rgba(200,190,255,0.5);text-align:center;">雨停了。</div>
+    <div class="color-dot" id="drinkColorDot"></div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:14px;font-style:italic;color:rgba(140,120,200,0.4);text-align:center;" id="drinkHint"></div>
+    <button class="drink" onclick="showResult()">喝一口尝尝</button>
+  </div>
+
+  <!-- 结果页 -->
   <div id="resultPage">
-    <div class="res-label">你接到的雨，喝起来是</div>
-    <div class="color-swatch" id="colorSwatch"></div>
-    <div class="res-cup" id="resCup">🫧</div>
-    <div class="res-name" id="resName"></div>
+    <div class="result-got">你尝到了</div>
+    <div class="liquid-cup" id="liquidCup">🫗</div>
+    <div class="color-dot" id="resultColorDot"></div>
+    <div class="result-name" id="resultName"></div>
     <div class="flavor-tags" id="flavorTags"></div>
-    <div class="res-desc" id="resDesc"></div>
-    <button onclick="resetGame()" style="margin-top:4px;">重新接雨</button>
+    <div class="result-desc" id="resultDesc"></div>
+    <button onclick="resetGame()">重新接雨</button>
   </div>
 </div>
 
 <script>
-const canvas=document.getElementById('gameCanvas');
-const ctx=canvas.getContext('2d');
-const W=canvas.width,H=canvas.height;
+// ── Audio files (Safari compatible) ──
+const AUDIO = {};
+['sour','sweet','bitter','spicy','salty'].forEach(id=>{
+  const a = new Audio(`sounds/${id}.mp3`);
+  a.volume = 0.6;
+  a.load();
+  AUDIO[id] = a;
+});
 
-const FLAVORS=[
-  {id:'sour',  name:'酸',hex:'#c8c83c',color:{r:200,g:200,b:60}, note:'A5'},
-  {id:'sweet', name:'甜',hex:'#e878b0',color:{r:232,g:120,b:176},note:'E5'},
-  {id:'bitter',name:'苦',hex:'#3c6450',color:{r:60, g:100,b:80}, note:'C3'},
-  {id:'spicy', name:'辣',hex:'#dc3c3c',color:{r:220,g:60, b:60}, note:'G4'},
-  {id:'salty', name:'咸',hex:'#5090d0',color:{r:80, g:144,b:208},note:'D4'},
+function playNote(id){
+  try{
+    const a = AUDIO[id];
+    if(!a) return;
+    // clone to allow overlapping plays
+    const clone = a.cloneNode();
+    clone.volume = 0.6;
+    clone.play().catch(()=>{});
+    setTimeout(()=>clone.remove(), 2000);
+  }catch(e){}
+}
+
+function unlockAudio(){
+  // pre-warm audio on first interaction
+  Object.values(AUDIO).forEach(a=>{ a.play().then(()=>a.pause()).catch(()=>{}); });
+}
+document.addEventListener('touchstart', unlockAudio, {once:true});
+document.addEventListener('mousedown', unlockAudio, {once:true});
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+
+const FLAVORS = [
+  { id:'sour',   name:'酸', color:{r:220,g:220,b:60} },
+  { id:'sweet',  name:'甜', color:{r:240,g:140,b:180} },
+  { id:'bitter', name:'苦', color:{r:60, g:100,b:80} },
+  { id:'spicy',  name:'辣', color:{r:220,g:60, b:60} },
+  { id:'salty',  name:'咸', color:{r:100,g:160,b:220} },
 ];
 
-// 单一口味
-const SINGLE={
-  sour: {name:'一滴青梅水',cup:'🍋',desc:'酸得让牙齿发软，像咬开了一颗青梅。'},
-  sweet:{name:'花朵上的露珠',cup:'🌸',desc:'甜甜的，像花朵上还没蒸发的露珠。'},
-  bitter:{name:'老茶叶的汁',cup:'🍃',desc:'苦得发涩，像嚼碎了一片老茶叶。'},
-  spicy:{name:'山椒的眼泪',cup:'🌶️',desc:'辣得发烫，像误吞了一粒野生的山椒。'},
-  salty:{name:'退潮后的盐',cup:'🌊',desc:'咸咸的，像海浪退走之后沙子上结的盐。'},
+const SINGLE = {
+  sour:   { name:'酸得让牙齿发软，像咬开了一颗青梅',   cup:'🍋' },
+  sweet:  { name:'甜甜的，像花朵上还没蒸发的露珠',     cup:'🌸' },
+  bitter: { name:'苦得发涩，像嚼碎了一片老茶叶',       cup:'🍃' },
+  spicy:  { name:'辣得发烫，像误吞了一粒野生的山椒',   cup:'🌶' },
+  salty:  { name:'咸咸的，像海浪退走之后沙子上结的盐', cup:'🌊' },
 };
 
-// 两种组合
-const DOUBLE={
-  'sour-sweet': {name:'还没全熟的草莓汁',cup:'🍓',desc:'先酸后甜，像还没全熟的草莓。'},
-  'sour-bitter':{name:'柠檬皮的苦水',cup:'🍋',desc:'又酸又苦，像咬了一口没泡开的柠檬皮。'},
-  'sour-spicy': {name:'泡菜坛子开盖的瞬间',cup:'🫙',desc:'酸里带辣，像腌了很久的泡菜坛子打开的瞬间。'},
-  'sour-salty': {name:'腌梅子沁出来的汁',cup:'🫧',desc:'酸咸交织，像腌梅子沁出来的汁。'},
-  'sweet-bitter':{name:'可可豆刚磨碎的粉',cup:'🍫',desc:'甜里藏着苦，像可可豆刚磨碎还没加糖。'},
-  'sweet-spicy': {name:'蜂蜜姜汁',cup:'🍯',desc:'甜的同时有点辣，像蜂蜜里泡着的一截姜。'},
-  'sweet-salty': {name:'焦糖盐粒',cup:'🍬',desc:'甜里带咸，像撒了一点盐的焦糖。'},
-  'bitter-spicy':{name:'苦瓜生姜汁',cup:'🌿',desc:'苦而且辣，像嚼了一口生姜和苦瓜一起。'},
-  'bitter-salty':{name:'海边老树皮上的什么',cup:'🪨',desc:'又苦又咸，像海边老树皮上舔下来的。'},
-  'spicy-salty': {name:'辣椒坛子里的盐水',cup:'🫙',desc:'辣而且咸，像腌辣椒坛子里的盐水。'},
+const DOUBLE = {
+  'sour+sweet':   { name:'先酸后甜，像还没全熟的草莓',                cup:'🍓' },
+  'sour+bitter':  { name:'又酸又苦，像咬了一口没泡开的柠檬皮',        cup:'🍵' },
+  'sour+spicy':   { name:'酸里带辣，像腌了很久的泡菜坛子打开的瞬间',  cup:'🫙' },
+  'sour+salty':   { name:'酸咸交织，像腌梅子沁出来的汁',              cup:'🫧' },
+  'sweet+bitter': { name:'甜里藏着苦，像可可豆刚磨碎还没加糖',        cup:'🍫' },
+  'sweet+spicy':  { name:'甜的同时有点辣，像蜂蜜里泡着的一截姜',      cup:'🍯' },
+  'sweet+salty':  { name:'甜里带咸，像撒了一点盐的焦糖',              cup:'🧂' },
+  'bitter+spicy': { name:'苦而且辣，像嚼了一口生姜和苦瓜一起',        cup:'🌿' },
+  'bitter+salty': { name:'又苦又咸，像海边老树皮上舔下来的',          cup:'🪨' },
+  'spicy+salty':  { name:'辣而且咸，像腌辣椒坛子里的盐水',           cup:'🫗' },
 };
 
-// 三种及以上：动态生成
-function buildMultiDesc(ids){
-  const names=ids.map(id=>FLAVORS.find(f=>f.id===id).name);
-  return `${names.join('的、')}的，像把梦里某个说不清楚的东西放进嘴里。`;
+function getDoubleKey(ids){
+  const order=['sour','sweet','bitter','spicy','salty'];
+  return ids.slice().sort((a,b)=>order.indexOf(a)-order.indexOf(b)).join('+');
+}
+
+function buildResult(){
+  const total=Object.values(caught).reduce((a,b)=>a+b,0);
+  let cr=128,cg=128,cb=128;
+  if(mixColor.count>0){
+    cr=Math.min(255,Math.round(mixColor.r/mixColor.count));
+    cg=Math.min(255,Math.round(mixColor.g/mixColor.count));
+    cb=Math.min(255,Math.round(mixColor.b/mixColor.count));
+  }
+  if(total===0) return{name:'什么味道都没有，像舔了一下清晨的空气',cup:'🫙',tags:[],color:{r:cr,g:cg,b:cb}};
+  const sorted=Object.entries(caught).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  const ids=sorted.map(([id])=>id);
+  let name,cup;
+  if(ids.length===1){
+    name=SINGLE[ids[0]].name; cup=SINGLE[ids[0]].cup;
+  } else if(ids.length===2){
+    const d=DOUBLE[getDoubleKey(ids)]||{name:'两种味道混在一起，说不清楚',cup:'🫗'};
+    name=d.name; cup=d.cup;
+  } else {
+    const names=sorted.map(([id])=>FLAVORS.find(f=>f.id===id).name);
+    name=names.join('的、')+'的，像把梦里某个说不清楚的东西放进嘴里';
+    cup='🫗';
+  }
+  return{name,cup,tags:sorted.map(([id,count])=>({flavor:FLAVORS.find(f=>f.id===id),count})),color:{r:cr,g:cg,b:cb}};
 }
 
 let drops=[],player={x:W/2,w:46,h:10};
@@ -108,64 +167,46 @@ let mixColor={r:0,g:0,b:0,count:0};
 let gameActive=false,totalDrops=0,maxDrops=45;
 let rainInterval=null,animRaf=null;
 let keys={left:false,right:false};
-let synth=null,toneStarted=false;
-
-async function initTone(){
-  if(toneStarted)return;
-  await Tone.start();toneStarted=true;
-  synth=new Tone.PolySynth(Tone.Synth,{
-    oscillator:{type:'sine'},
-    envelope:{attack:0.05,decay:0.2,sustain:0.35,release:0.9},
-    volume:-9
-  });
-  const rev=new Tone.Reverb({decay:2,wet:0.38});
-  synth.chain(rev,Tone.Destination);
-}
-function playNote(note){
-  if(!synth)return;
-  try{synth.triggerAttackRelease(note,'16n',Tone.now(),0.45+Math.random()*0.2);}catch(e){}
-}
+let savedResult=null;
 
 function spawnDrop(){
   if(totalDrops>=maxDrops)return;
   totalDrops++;
   const f=FLAVORS[Math.floor(Math.random()*FLAVORS.length)];
-  drops.push({x:20+Math.random()*(W-40),y:-14,vy:1.8+Math.random()*2.0,r:7+Math.random()*3,flavor:f,trail:[],done:false});
+  drops.push({x:20+Math.random()*(W-40),y:-14,vy:200+Math.random()*140,r:7+Math.random()*3,flavor:f,trail:[],done:false});
 }
 
 function drawFrame(){
-  ctx.fillStyle='#080810';ctx.fillRect(0,0,W,H);
-  // 云
+  ctx.fillStyle='#080810'; ctx.fillRect(0,0,W,H);
   ctx.fillStyle='rgba(140,120,200,0.06)';
-  ctx.beginPath();ctx.roundRect(W/2-70,6,140,30,15);ctx.fill();
-  ctx.fillStyle='rgba(200,190,255,0.22)';ctx.font='13px serif';ctx.textAlign='center';
+  ctx.beginPath(); ctx.roundRect(W/2-70,6,140,30,15); ctx.fill();
+  ctx.fillStyle='rgba(200,190,255,0.22)';
+  ctx.font='13px serif'; ctx.textAlign='center';
   ctx.fillText('☁️  ☁️  ☁️',W/2,26);
-  // 图例
   FLAVORS.forEach((f,i)=>{
-    const x=14+i*74,y=H-46;
-    ctx.beginPath();ctx.arc(x+5,y,5,0,Math.PI*2);
-    ctx.fillStyle=`rgba(${f.color.r},${f.color.g},${f.color.b},0.75)`;ctx.fill();
-    ctx.fillStyle='rgba(200,190,255,0.4)';ctx.font='10px Crimson Pro';ctx.textAlign='left';
-    ctx.fillText(f.name,x+13,y+4);
+    const x=12+i*72,y=H-48;
+    ctx.beginPath(); ctx.arc(x+6,y,5,0,Math.PI*2);
+    ctx.fillStyle=`rgba(${f.color.r},${f.color.g},${f.color.b},0.7)`; ctx.fill();
+    ctx.fillStyle='rgba(200,190,255,0.4)';
+    ctx.font='10px Crimson Pro'; ctx.textAlign='left';
+    ctx.fillText(f.name,x+14,y+4);
   });
-  // 雨滴
   drops.forEach(d=>{
     if(d.done)return;
     d.trail.forEach((t,i)=>{
-      ctx.beginPath();ctx.arc(t.x,t.y,d.r*0.4,0,Math.PI*2);
-      ctx.fillStyle=`rgba(${d.flavor.color.r},${d.flavor.color.g},${d.flavor.color.b},${(i/d.trail.length)*0.22})`;
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(t.x,t.y,d.r*0.45,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${d.flavor.color.r},${d.flavor.color.g},${d.flavor.color.b},${(i/d.trail.length)*0.25})`; ctx.fill();
     });
     const g=ctx.createRadialGradient(d.x-d.r*0.3,d.y-d.r*0.3,0,d.x,d.y,d.r);
     const c=d.flavor.color;
     g.addColorStop(0,`rgba(${Math.min(255,c.r+70)},${Math.min(255,c.g+70)},${Math.min(255,c.b+70)},0.95)`);
     g.addColorStop(1,`rgba(${c.r},${c.g},${c.b},0.8)`);
-    ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();
-    ctx.fillStyle=`rgba(${c.r},${c.g},${c.b},0.65)`;
-    ctx.font='9px Crimson Pro';ctx.textAlign='center';
+    ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
+    ctx.fillStyle=g; ctx.fill();
+    ctx.fillStyle=`rgba(${c.r},${c.g},${c.b},0.7)`;
+    ctx.font='9px Crimson Pro'; ctx.textAlign='center';
     ctx.fillText(d.flavor.name,d.x,d.y-d.r-2);
   });
-  // 接盘
   const px=player.x-player.w/2,py=H-28;
   const g2=ctx.createLinearGradient(px,py,px+player.w,py);
   if(mixColor.count>0){
@@ -175,163 +216,133 @@ function drawFrame(){
     g2.addColorStop(0,`rgba(${cr},${cg},${cb},0.75)`);
     g2.addColorStop(1,`rgba(${cr},${cg},${cb},0.4)`);
   } else {
-    g2.addColorStop(0,'rgba(200,190,255,0.5)');g2.addColorStop(1,'rgba(140,120,200,0.3)');
+    g2.addColorStop(0,'rgba(200,190,255,0.5)');
+    g2.addColorStop(1,'rgba(140,120,200,0.3)');
   }
-  ctx.beginPath();ctx.roundRect(px,py,player.w,player.h,5);ctx.fillStyle=g2;ctx.fill();
-  // 计数
-  ctx.fillStyle='rgba(200,190,255,0.3)';ctx.font='11px Crimson Pro';
-  ctx.textAlign='left';
-  const total=Object.values(caught).reduce((a,b)=>a+b,0);
-  ctx.fillText(`接到 ${total} 滴`,10,H-8);
+  ctx.beginPath(); ctx.roundRect(px,py,player.w,player.h,5);
+  ctx.fillStyle=g2; ctx.fill();
+  ctx.fillStyle='rgba(200,190,255,0.3)';
+  ctx.font='11px Crimson Pro'; ctx.textAlign='left';
+  ctx.fillText(`接到 ${Object.values(caught).reduce((a,b)=>a+b,0)} 滴`,10,H-8);
   ctx.textAlign='right';
-  const rem=maxDrops-totalDrops;
-  ctx.fillText(rem>0?`还有约 ${rem} 滴`:'雨停了…',W-10,H-8);
-  // 混合色预览
+  ctx.fillText(totalDrops<maxDrops?`还有约 ${maxDrops-totalDrops} 滴`:'雨停了…',W-10,H-8);
   if(mixColor.count>0){
     const cr=Math.min(255,Math.round(mixColor.r/mixColor.count));
     const cg=Math.min(255,Math.round(mixColor.g/mixColor.count));
     const cb=Math.min(255,Math.round(mixColor.b/mixColor.count));
-    ctx.beginPath();ctx.arc(W/2,H-22,7,0,Math.PI*2);
-    ctx.fillStyle=`rgb(${cr},${cg},${cb})`;ctx.fill();
-    ctx.strokeStyle='rgba(255,255,255,0.12)';ctx.lineWidth=0.5;ctx.stroke();
+    ctx.beginPath(); ctx.arc(W/2,H-22,7,0,Math.PI*2);
+    ctx.fillStyle=`rgb(${cr},${cg},${cb})`; ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.15)'; ctx.lineWidth=0.5; ctx.stroke();
   }
 }
 
-function update(){
+function update(delta){
   if(!gameActive)return;
-  const spd=5;
-  if(keys.left)player.x=Math.max(player.w/2,player.x-spd);
-  if(keys.right)player.x=Math.min(W-player.w/2,player.x+spd);
+  const spd=300*delta;
+  if(keys.left)  player.x=Math.max(player.w/2,player.x-spd);
+  if(keys.right) player.x=Math.min(W-player.w/2,player.x+spd);
   const py=H-28;
   drops.forEach(d=>{
     if(d.done)return;
     d.trail.push({x:d.x,y:d.y});
     if(d.trail.length>8)d.trail.shift();
-    d.y+=d.vy;
+    d.y+=d.vy*delta;
     if(d.y+d.r>=py&&d.y-d.r<=py+10&&d.x>=player.x-player.w/2-d.r&&d.x<=player.x+player.w/2+d.r){
       d.done=true;
       caught[d.flavor.id]++;
-      mixColor.r+=d.flavor.color.r;mixColor.g+=d.flavor.color.g;mixColor.b+=d.flavor.color.b;mixColor.count++;
-      playNote(d.flavor.note);
+      mixColor.r+=d.flavor.color.r; mixColor.g+=d.flavor.color.g; mixColor.b+=d.flavor.color.b; mixColor.count++;
+      playNote(d.flavor.id);
       spawnEffect(d.x,py,d.flavor.color);
     }
     if(d.y>H+20)d.done=true;
   });
   drops=drops.filter(d=>!d.done);
-  if(totalDrops>=maxDrops&&drops.length===0)rainStopped();
+  if(totalDrops>=maxDrops&&drops.length===0)endGame();
 }
 
 function spawnEffect(x,y,c){
   for(let i=0;i<5;i++){
     const el=document.createElement('div');
-    const a=Math.random()*Math.PI*2,d=12+Math.random()*18;
+    const a=Math.random()*Math.PI*2,dist=12+Math.random()*18;
     const rect=canvas.getBoundingClientRect();
     el.style.cssText=`position:fixed;pointer-events:none;z-index:999;width:5px;height:5px;border-radius:50%;background:rgba(${c.r},${c.g},${c.b},0.85);left:${rect.left+x}px;top:${rect.top+y}px;transition:all 0.5s ease-out;transform:translate(-50%,-50%);`;
     document.body.appendChild(el);
-    requestAnimationFrame(()=>{el.style.transform=`translate(calc(-50% + ${Math.cos(a)*d}px),calc(-50% + ${Math.sin(a)*d}px)) scale(0)`;el.style.opacity='0';});
+    requestAnimationFrame(()=>{el.style.transform=`translate(calc(-50% + ${Math.cos(a)*dist}px),calc(-50% + ${Math.sin(a)*dist}px)) scale(0)`;el.style.opacity='0';});
     setTimeout(()=>el.remove(),550);
   }
 }
 
-function rainStopped(){
+function endGame(){
   gameActive=false;
-  clearInterval(rainInterval);
-  cancelAnimationFrame(animRaf);
+  clearInterval(rainInterval); cancelAnimationFrame(animRaf);
   drawFrame();
-  // 显示"喝一口"按钮
-  document.getElementById('drinkBtn').style.display='inline-block';
-  document.getElementById('startBtn').style.display='none';
-  document.getElementById('gameHint').textContent='雨停了。';
+  savedResult=buildResult();
+  setTimeout(()=>{
+    document.getElementById('gameCanvas').style.display='none';
+    document.getElementById('startBtn').style.display='none';
+    document.getElementById('gameHint').style.display='none';
+    const dp=document.getElementById('drinkPage');
+    dp.style.display='flex';
+    const{r,g,b}=savedResult.color;
+    document.getElementById('drinkColorDot').style.background=`rgb(${r},${g},${b})`;
+    const total=Object.values(caught).reduce((a,v)=>a+v,0);
+    document.getElementById('drinkHint').textContent=total>0?`接到了 ${total} 滴，混合成了这个颜色。`:'什么都没接到。杯子是空的。';
+  },600);
 }
 
 function showResult(){
-  document.getElementById('drinkBtn').style.display='none';
-  document.getElementById('gameCanvas').style.display='none';
-  document.getElementById('gameHint').style.display='none';
-  document.getElementById('resetBtn').style.display='inline-block';
-
-  const total=Object.values(caught).reduce((a,b)=>a+b,0);
-  const sorted=Object.entries(caught).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
-  const kinds=sorted.length;
-
-  let name,cup,desc;
-
-  if(total===0){
-    name='什么味道都没有';cup='🫙';
-    desc='像舔了一下清晨的空气。';
-  } else if(kinds===1){
-    const d=SINGLE[sorted[0][0]];
-    name=d.name;cup=d.cup;desc=d.desc;
-  } else if(kinds===2){
-    const key=[sorted[0][0],sorted[1][0]].sort().join('-');
-    const d=DOUBLE[key]||{name:'两种混合的液体',cup:'🫧',desc:'两种味道混在一起，说不清楚像什么。'};
-    name=d.name;cup=d.cup;desc=d.desc;
-  } else {
-    // 三种及以上
-    cup='🌀';
-    name='梦里某个说不清楚的液体';
-    desc=buildMultiDesc(sorted.map(([id])=>id));
-  }
-
-  // 混合颜色
-  let cr=128,cg=128,cb=128;
-  if(mixColor.count>0){
-    cr=Math.min(255,Math.round(mixColor.r/mixColor.count));
-    cg=Math.min(255,Math.round(mixColor.g/mixColor.count));
-    cb=Math.min(255,Math.round(mixColor.b/mixColor.count));
-  }
-
-  document.getElementById('colorSwatch').style.background=`rgb(${cr},${cg},${cb})`;
-  document.getElementById('resCup').textContent=cup;
-  document.getElementById('resName').textContent=name;
-  document.getElementById('resDesc').textContent=desc;
-
-  // 口味标签
-  const tagsEl=document.getElementById('flavorTags');tagsEl.innerHTML='';
-  sorted.forEach(([id,count])=>{
-    const f=FLAVORS.find(fl=>fl.id===id);
-    const tag=document.createElement('span');tag.className='ftag';
-    tag.style.cssText=`background:rgba(${f.color.r},${f.color.g},${f.color.b},0.12);border:0.5px solid rgba(${f.color.r},${f.color.g},${f.color.b},0.4);color:rgba(${Math.min(255,f.color.r+80)},${Math.min(255,f.color.g+80)},${Math.min(255,f.color.b+80)},0.9);`;
-    tag.textContent=`${f.name} × ${count}`;
-    tagsEl.appendChild(tag);
+  document.getElementById('drinkPage').style.display='none';
+  const rp=document.getElementById('resultPage');
+  rp.style.display='flex';
+  const{name,cup,tags,color}=savedResult;
+  const{r,g,b}=color;
+  document.getElementById('liquidCup').textContent=cup;
+  document.getElementById('resultColorDot').style.background=`rgb(${r},${g},${b})`;
+  document.getElementById('resultName').textContent=name;
+  const tagsEl=document.getElementById('flavorTags'); tagsEl.innerHTML='';
+  tags.forEach(({flavor,count})=>{
+    const tag=document.createElement('span'); tag.className='flavor-tag';
+    tag.style.cssText=`background:rgba(${flavor.color.r},${flavor.color.g},${flavor.color.b},0.12);border:0.5px solid rgba(${flavor.color.r},${flavor.color.g},${flavor.color.b},0.4);color:rgba(${Math.min(255,flavor.color.r+60)},${Math.min(255,flavor.color.g+60)},${Math.min(255,flavor.color.b+60)},0.9);`;
+    tag.textContent=`${flavor.name} × ${count}`; tagsEl.appendChild(tag);
   });
-
-  document.getElementById('resultPage').style.display='flex';
+  document.getElementById('resultDesc').textContent='';
 }
 
-async function startGame(){
-  await initTone();
-  gameActive=true;drops=[];
-  caught={sour:0,sweet:0,bitter:0,spicy:0,salty:0};
-  mixColor={r:0,g:0,b:0,count:0};totalDrops=0;player.x=W/2;
+function startGame(){
+  unlockAudio();
+  gameActive=true;
+  drops=[]; caught={sour:0,sweet:0,bitter:0,spicy:0,salty:0};
+  mixColor={r:0,g:0,b:0,count:0}; totalDrops=0; player.x=W/2; savedResult=null;
   document.getElementById('startBtn').disabled=true;
-  document.getElementById('drinkBtn').style.display='none';
   document.getElementById('gameHint').textContent='用鼠标或 ← → 键左右移动接雨滴';
-
   rainInterval=setInterval(()=>{
-    if(totalDrops<maxDrops)spawnDrop();
+    if(totalDrops<maxDrops) spawnDrop();
     else clearInterval(rainInterval);
   },550);
-
-  function loop(){update();drawFrame();if(gameActive)animRaf=requestAnimationFrame(loop);}
+  let lastTs=0;
+  function loop(ts){
+    const delta=lastTs?Math.min((ts-lastTs)/1000, 0.05):0.016;
+    lastTs=ts;
+    update(delta); drawFrame();
+    if(gameActive) animRaf=requestAnimationFrame(loop);
+  }
   animRaf=requestAnimationFrame(loop);
 }
 
 function resetGame(){
-  clearInterval(rainInterval);cancelAnimationFrame(animRaf);
-  gameActive=false;drops=[];
-  caught={sour:0,sweet:0,bitter:0,spicy:0,salty:0};
-  mixColor={r:0,g:0,b:0,count:0};totalDrops=0;player.x=W/2;
+  clearInterval(rainInterval); cancelAnimationFrame(animRaf);
+  gameActive=false; drops=[]; caught={sour:0,sweet:0,bitter:0,spicy:0,salty:0};
+  mixColor={r:0,g:0,b:0,count:0}; totalDrops=0; player.x=W/2; savedResult=null;
   document.getElementById('resultPage').style.display='none';
+  document.getElementById('drinkPage').style.display='none';
   document.getElementById('gameCanvas').style.display='block';
   document.getElementById('startBtn').style.display='inline-block';
   document.getElementById('startBtn').disabled=false;
-  document.getElementById('drinkBtn').style.display='none';
-  document.getElementById('resetBtn').style.display='none';
   document.getElementById('gameHint').style.display='block';
   document.getElementById('gameHint').textContent='按开始，用鼠标或手指左右移动来接雨滴';
-  ctx.fillStyle='#080810';ctx.fillRect(0,0,W,H);
-  ctx.fillStyle='rgba(200,190,255,0.15)';ctx.font='italic 14px Cormorant Garamond';ctx.textAlign='center';
+  ctx.fillStyle='#080810'; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(200,190,255,0.15)';
+  ctx.font='italic 14px Cormorant Garamond'; ctx.textAlign='center';
   ctx.fillText('按开始，等待有味道的雨……',W/2,H/2);
 }
 
@@ -340,8 +351,8 @@ document.addEventListener('keyup',e=>{if(e.key==='ArrowLeft')keys.left=false;if(
 canvas.addEventListener('mousemove',e=>{if(!gameActive)return;const r=canvas.getBoundingClientRect();player.x=Math.max(player.w/2,Math.min(W-player.w/2,(e.clientX-r.left)*(W/r.width)));});
 canvas.addEventListener('touchmove',e=>{if(!gameActive)return;e.preventDefault();const r=canvas.getBoundingClientRect();player.x=Math.max(player.w/2,Math.min(W-player.w/2,(e.touches[0].clientX-r.left)*(W/r.width)));},{passive:false});
 
-ctx.fillStyle='#080810';ctx.fillRect(0,0,W,H);
-ctx.fillStyle='rgba(200,190,255,0.15)';ctx.font='italic 14px Cormorant Garamond';ctx.textAlign='center';
+ctx.fillStyle='#080810'; ctx.fillRect(0,0,W,H);
+ctx.fillStyle='rgba(200,190,255,0.15)'; ctx.font='italic 14px Cormorant Garamond'; ctx.textAlign='center';
 ctx.fillText('按开始，等待有味道的雨……',W/2,H/2);
 </script>
 </body>
