@@ -164,7 +164,7 @@ function buildResult(){
 let drops=[],player={x:W/2,w:46,h:10};
 let caught={sour:0,sweet:0,bitter:0,spicy:0,salty:0};
 let mixColor={r:0,g:0,b:0,count:0};
-let gameActive=false,totalDrops=0,maxDrops=45;
+let gameActive=false,totalDrops=0,maxDrops=100;
 let rainInterval=null,animRaf=null;
 let keys={left:false,right:false};
 let savedResult=null;
@@ -173,7 +173,7 @@ function spawnDrop(){
   if(totalDrops>=maxDrops)return;
   totalDrops++;
   const f=FLAVORS[Math.floor(Math.random()*FLAVORS.length)];
-  drops.push({x:20+Math.random()*(W-40),y:-14,vy:500+Math.random()*600,r:7+Math.random()*3,flavor:f,trail:[],done:false});
+  drops.push({x:20+Math.random()*(W-40),y:-14,vy:500+Math.random()*1000,r:7+Math.random()*3,flavor:f,trail:[],done:false});
 }
 
 function drawFrame(){
@@ -318,7 +318,7 @@ function startGame(){
   rainInterval=setInterval(()=>{
     if(totalDrops<maxDrops) spawnDrop();
     else clearInterval(rainInterval);
-  },100);
+  },300);
   let lastTs=0;
   function loop(ts){
     const delta=lastTs?Math.min((ts-lastTs)/1000, 0.05):0.016;
