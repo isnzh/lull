@@ -173,7 +173,7 @@ function spawnDrop(){
   if(totalDrops>=maxDrops)return;
   totalDrops++;
   const f=FLAVORS[Math.floor(Math.random()*FLAVORS.length)];
-  drops.push({x:20+Math.random()*(W-40),y:-14,vy:500+Math.random()*1000,r:7+Math.random()*3,flavor:f,trail:[],done:false});
+  drops.push({x:20+Math.random()*(W-40),y:-14,vy:500+Math.random()*800,r:7+Math.random()*3,flavor:f,trail:[],done:false});
 }
 
 function drawFrame(){
@@ -318,7 +318,7 @@ function startGame(){
   rainInterval=setInterval(()=>{
     if(totalDrops<maxDrops) spawnDrop();
     else clearInterval(rainInterval);
-  },300);
+  },200);
   let lastTs=0;
   function loop(ts){
     const delta=lastTs?Math.min((ts-lastTs)/1000, 0.05):0.016;
